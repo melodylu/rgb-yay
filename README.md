@@ -1,5 +1,5 @@
 # rgba-yay
-What color is rgb(173, 25, 33)? I wanted to get better at guessing with some prractice. This is a quick little game I built to test (and train) my brain to extrapolate color from code: 
+What color is rgb(173, 25, 33)? I wanted to get better at guessing via intelligent practice. This is a quick little game I built to test (and train) my brain to extrapolate color from code: 
 
 http://melodylu.github.io/rgb-yay/
 
