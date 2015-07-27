@@ -4,4 +4,7 @@ What color is rgb(173, 25, 33)? I wanted to get better at guessing with some prr
 http://melodylu.github.io/rgb-yay/
 
 
- There's a small gray bar at the bottom to help players get in the right ballpark for how bright the right answer is, but (perceived luminance)[https://en.wikipedia.org/wiki/Color_vision#Theories_of_color_vision] is tricky.
+ There's a small gray bar at the bottom to help players get in the right ballpark for how bright the right answer is, but perceived luminance of colors is tricky*, so it might not help much.
+
+
+ * https://en.wikipedia.org/wiki/Color_vision#Theories_of_color_vision

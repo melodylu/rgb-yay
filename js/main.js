@@ -1,19 +1,21 @@
-var globalAnswer = '';
-
 $(document).ready(function() {
     var wideArrColors = [];
     var canvas = $('div.container');
     var theAnswer = '';
     var rainbowSize = 5;
     var score = 0;
+    var hints = false;
 
-    // run color game by calling my functions!
+
+    // run color game by calling my builder functions!
     makeAndHideDivs();
     buildNewRound();
 
+
     // game logic
     function buildNewRound() {
-
+        //turn hints back off
+        hints = false;
         // populate wideArrColors array
         _.times(rainbowSize, function(index) {
             wideArrColors.push(newColor());
@@ -48,52 +50,58 @@ $(document).ready(function() {
             }
         });
 
-        // add this class the old-school way with DOM selectors so that I can finally go to sleep without jQuery and Sizzle exploding about how rgba(blah, blah, blah) looks like an invalid script injection
+        // add this class the old-school way with DOM selectors so that I can finally go to sleep without jQuery and Sizzle exploding about how rgba(###, ###, ###, 1) looks like an invalid script injection
+        // (this flags the correct answer, so I can show it if the user doesn't select it)
         var temp = document.getElementById(theAnswer);
         $(temp).addClass('secretWinner');
-
         // end button generation
 
-        // make a pretty awesome header with hinted colors
+        // demo value for theAnswer: "rgba(202, 67, 118, 1)""
+        // creats a header with hinted colors in the background based on current value of theAnswer
         var ACArr = theAnswer.split(', ');
         ACArr[0] = ACArr[0].slice(5);
         ACArr[3] = ACArr[0].slice(0, -1);
-
-        var displayAnswer = $('<div>rgb(' + '<div class="colorBar"><span class="red">' + ACArr[0] + '</span></div>, ' + '<span class="green">' + ACArr[1] + '</span>, ' + '<span class="blue">' + ACArr[2] + '</span>' + ')</div>');
-        // demo color: "rgba(202, 67, 118, 1)""
-
+        var displayAnswer = $('<div><p>which color is:</p>rgb(' + '<span class="red">' + padTextNumber(ACArr[0]) + '</span>,' + '<span class="green">' + padTextNumber(ACArr[1]) + '</span>,' + '<span class="blue">' + padTextNumber(ACArr[2]) + '</span>' + ')?</div>');
         displayAnswer.attr('id', 'theAnswer');
         displayAnswer.addClass('gameTalk');
         canvas.prepend(displayAnswer);
+
+
+
+        // <divclass="barChart"><divclass="colorBar"><divclass="redBar">&nbsp&nbsp</div></div><divclass="colorBar"><divclass="greenBar">&nbsp&nbsp</div></div><divclass="colorBar"><divclass="blueBar">&nbsp&nbsp</div></div></div>
+        var scaleBackChart = .5;
+        var barChartHeight = 255;
+        var barChartWidth = 300;
+        var $barChart = $('<div class="barChart"><svg xmlns="http://www.w3.org/2000/svg" width="300" height="' + barChartHeight * scaleBackChart + '" style="stroke-width: 0px;"><rect fill="red" x="' + 0 + '" y="' + Math.floor(barChartHeight - Number(ACArr[0])) * scaleBackChart + '" width="100" height="' + Number(ACArr[0]) * scaleBackChart + '"></rect><rect fill="green" x="' + 100 + '" y="' + Math.floor(barChartHeight - Number(ACArr[1])) * scaleBackChart + '" width="100" height="' + Number(ACArr[1]) * scaleBackChart + '"></rect><rect fill="blue" x="' + 200 + '" y="' + Math.floor(barChartHeight - Number(ACArr[2])) * scaleBackChart + '" width="100" height="' + Number(ACArr[2]) * scaleBackChart + '"></svg></div>');
+        canvas.prepend($barChart);
+
+
 
         // update score
         if (score) {
             $('#scoreDisplay').text(score);
         }
 
-        $('span.red').css('padding-top', Math.floor(ACArr[0] * 100 / 255));
-        $('span.green').css('padding-top', Math.floor(ACArr[1] * 100 / 255));
-        $('span.blue').css('padding-top', Math.floor(ACArr[2] * 100 / 255));
 
-
-        // TODO: maybe I should avoid color theory and just do a 255 scale, % out of 255 for each, then mult that by 255 for new
-        // this adds a clever brightness div that doesn't help
-        var lum = Math.floor(((Number(ACArr[0]) + Number(ACArr[1]) + Number(ACArr[2])) / 3));
-        var lumGray = 'rgba(' + Math.floor(lum) + ', ' + Math.floor(lum) + ', ' + Math.floor(lum) + ', 1)';
-        var lumDiv = $('<br><div>' + 'brightness  &nbsp' + '</div>');
-
-        lumDiv.css('background-color', lumGray)
-        lumDiv.attr('id', 'lum');
-        lumDiv.addClass('lum');
-        lumDiv.appendTo(canvas);
-        // console.log(lum);
-        // console.log(lumGray);
-
-        // Perceived brightness based on RGB values:
-        // 0.299 * R + 0.587 * G + 0.114 * B
+        // this adds an "average" brightness div that might help the player
+        // Based on color theory of perceived brightness based on human perception of different colors:
         // http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
+        // lum = 0.33*R + 0.5*G + 0.168B 
+        var lum2 = Math.floor((Number(ACArr[0]) * .33 + Number(ACArr[1]) * .5 + Number(ACArr[2]) * .16));
+        var lumGray2 = 'rgba(' + lum2 + ', ' + lum2 + ', ' + lum2 + ', 1)';
 
+        var lumDiv2 = $('<div>' + "the right color is about this dark&nbsp" + '</div>');
 
+        lumDiv2.css('background-color', lumGray2)
+        lumDiv2.attr('id', 'lum2');
+        lumDiv2.addClass('lum');
+        lumDiv2.appendTo(canvas);
+
+        // Assume user starts the game not wanting hints, so hide the clues.
+        if (!hints) {
+            $('.barChart').css('opacity', 0);
+            $('#lum2').css('opacity', 0)
+        }
     } // end buildNewRound()
 
 
@@ -105,7 +113,18 @@ $(document).ready(function() {
         return color;
     }
 
-    // only doing this once these are popups that stay hidden unless needed
+    function padTextNumber(numStr) {
+        var padded = numStr;
+
+        if (Number(numStr) < 10) {
+            padded = '&nbsp&nbsp' + numStr;
+        } else if (Number(numStr) < 100) {
+            padded = '&nbsp' + numStr;
+        }
+        return padded;
+    }
+
+    // only doing this once; these are popups that stay hidden unless needed
     function makeAndHideDivs() {
         var displayWin = $('<div><p>You win!</p></div>');
         displayWin.attr('id', 'youWin');
@@ -122,7 +141,7 @@ $(document).ready(function() {
         score.addClass('gameTalk');
         $('.footer').append(score);
 
-        var numColors = $('<div class="rainbowSizeUI"><span id="addColors">+</span> Rainbow Size <span id="removeColors">-</span></div>');
+        var numColors = $('<div class="rainbowSizeUI"><span id="addColors">+</span> Colors <span id="removeColors">-</span> <span id="toggleHints">Hints</span></div>');
         numColors.attr('id', 'numColors');
         numColors.addClass('gameTalk');
         $('.footer').append(numColors);
@@ -132,7 +151,7 @@ $(document).ready(function() {
                 rainbowSize++;
                 anywhereClickReset();
 
-            anywhereClickReset();
+                anywhereClickReset();
             }
         });
         $('#removeColors').on('click', function() {
@@ -141,10 +160,25 @@ $(document).ready(function() {
                 anywhereClickReset();
             }
         });
+        $('#toggleHints').on('click', function() {
+            if (hints) {
+                $('.barChart').css('opacity', 0);
+                $('#lum2').css('opacity', 0)
+
+                hints = false;
+            } else {
+                $('.barChart').css('opacity', .08);
+                $('#lum2').css('opacity', 1)
+
+                hints = true;
+            }
+        });
         displayWin.hide();
         displayLose.hide();
     }
-
+    // begin a new round! Remove all elements that need to be rebuilt
+    // then run the buildNewRound() function. 
+    // Remove the "click" event that triggers this reset from the whole body of the page.
     function anywhereClickReset() {
         $('body').on('click', function() {
             $('#youWin').hide();
@@ -152,7 +186,7 @@ $(document).ready(function() {
             $('#theAnswer').remove();
             $('.choiceBtn').remove();
             $('.lum').remove();
-
+            $('svg').remove();
             wideArrColors = [];
             theAnswer = '';
             buildNewRound();
@@ -162,7 +196,3 @@ $(document).ready(function() {
     }
     globalAnswer = theAnswer;
 });
-
-
-// rgb historgram display, which you can turn on and off for "beginner" mode?
-// answer hinted in very faint white at bottom?
