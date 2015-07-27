@@ -5,7 +5,7 @@ $(document).ready(function() {
     var rainbowSize = 5;
     var score = 0;
     var hints = false;
-
+    var numWrong = 0;
 
     // run color game by calling my builder functions!
     makeAndHideDivs();
@@ -16,6 +16,15 @@ $(document).ready(function() {
     function buildNewRound() {
         //turn hints back off
         hints = false;
+
+        // maybe player needs a hint
+        if (numWrong > 3) {
+            $('#toggleHints').addClass('sadGlow');
+        } else {
+            $('#toggleHints').removeClass('sadGlow');
+
+        }
+
         // populate wideArrColors array
         _.times(rainbowSize, function(index) {
             wideArrColors.push(newColor());
@@ -40,11 +49,13 @@ $(document).ready(function() {
                 $(this).addClass('glow');
                 $('#youWin').show(10, function() {
                     score++;
+                    numWrong = 0;
                     anywhereClickReset();
                 });
             } else {
                 $('#youLose').show(10, function() {
                     $('.secretWinner').addClass('sadGlow');
+                    numWrong++;
                     anywhereClickReset();
                 });
             }
@@ -61,7 +72,7 @@ $(document).ready(function() {
         var ACArr = theAnswer.split(', ');
         ACArr[0] = ACArr[0].slice(5);
         ACArr[3] = ACArr[0].slice(0, -1);
-        var displayAnswer = $('<div><p>which color is:</p>rgb(' + '<span class="red">' + padTextNumber(ACArr[0]) + '</span>,' + '<span class="green">' + padTextNumber(ACArr[1]) + '</span>,' + '<span class="blue">' + padTextNumber(ACArr[2]) + '</span>' + ')?</div>');
+        var displayAnswer = $('<div><p>which color is:</p>rgb(' + '<span class="red">' + padTextNumber(ACArr[0]) + '</span>,' + '<span class="green">' + padTextNumber(ACArr[1]) + '</span>,' + '<span class="blue">' + padTextNumber(ACArr[2]) + '</span>' + ')</div>');
         displayAnswer.attr('id', 'theAnswer');
         displayAnswer.addClass('gameTalk');
         canvas.prepend(displayAnswer);
@@ -126,6 +137,12 @@ $(document).ready(function() {
 
     // only doing this once; these are popups that stay hidden unless needed
     function makeAndHideDivs() {
+        var $notes = $('<div class="notes gameTalk btn">code on github</div>');
+        $notes.on('click', function() {
+            window.open('https://github.com/melodylu/rgb-yay', '_blank');
+        })
+        canvas.prepend($notes);
+
         var displayWin = $('<div><p>You win!</p></div>');
         displayWin.attr('id', 'youWin');
         displayWin.addClass('gameTalk popup');
@@ -146,29 +163,36 @@ $(document).ready(function() {
         numColors.addClass('gameTalk');
         $('.footer').append(numColors);
 
-        $('#addColors').on('click', function() {
-            if (rainbowSize < 30) {
+        var $addColorsBtn = $('#addColors');
+        $addColorsBtn.addClass('btn');
+        $addColorsBtn.on('click', function() {
+            if (rainbowSize < 15) {
                 rainbowSize++;
                 anywhereClickReset();
 
                 anywhereClickReset();
             }
         });
-        $('#removeColors').on('click', function() {
+        var $removeColorsBtn = $('#removeColors');
+        $removeColorsBtn.addClass('btn');
+        $removeColorsBtn.on('click', function() {
             if (rainbowSize > 1) {
                 rainbowSize--;
                 anywhereClickReset();
             }
         });
-        $('#toggleHints').on('click', function() {
+        var $toggleHintsBtn = $('#toggleHints');
+        $toggleHintsBtn.addClass('btn');
+        $toggleHintsBtn.on('click', function() {
             if (hints) {
                 $('.barChart').css('opacity', 0);
                 $('#lum2').css('opacity', 0)
-
+                $toggleHintsBtn.removeClass('sadGlow');
                 hints = false;
             } else {
-                $('.barChart').css('opacity', .08);
+                $('.barChart').css('opacity', .3);
                 $('#lum2').css('opacity', 1)
+                $toggleHintsBtn.removeClass('sadGlow');
 
                 hints = true;
             }
